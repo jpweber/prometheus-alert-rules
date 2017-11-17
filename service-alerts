@@ -1,0 +1,10 @@
+# Service Checks
+
+ALERT ServiceCheckFailed
+IF probe_success < 1
+FOR 1m
+LABELS {severity="critical"}
+ANNOTATIONS {
+    summary="{{$labels.kubernetes_name | toUpper }} Health Check Failing. in Kubernetes Namespace {{$labels.kubernetes_namespace | toUpper}}",
+    description = "{{$labels.kubernetes_name}}  in {{$labels.kubernetes_namespace}} failed health check"
+}
