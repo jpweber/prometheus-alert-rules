@@ -1,0 +1,27 @@
+groups:
+- name: kubernetes-alerts
+  rules:
+  - alert: ClusterAutoScalerScaleUp
+    expr: cluster_autoscaler_scaled_up_nodes_total > 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: Scaling up {{ $value }} node(s)
+      summary: Kube Cluster Autoscaler is scaling up
+  - alert: ClusterAutoScalerScaleDown
+    expr: cluster_autoscaler_scaled_down_nodes_total > 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: Scaling down {{ $value }} node(s)
+      summary: Kube Cluster Autoscaler is scaling down
+  - alert: PodRestartingTooMuch
+    expr: rate(kube_pod_container_status_restarts[2m]) > 1 / (5 * 60)
+    for: 30m
+    labels:
+      severity: critical
+    annotations:
+      description: Pod {{ $labels.namespace }}/{{ $labels.name }} restarting too much.
+      summary: Pod {{ $labels.namespace }}/{{ $labels.name }} restarting too much.

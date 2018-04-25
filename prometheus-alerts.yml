@@ -1,0 +1,20 @@
+groups:
+- name: prometheus-alerts
+  rules:
+  - alert: FailedReload
+    expr: prometheus_config_last_reload_successful == 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: Reloading Prometheus' configuration has failed for {{ $labels.namespace
+        }}/{{ $labels.pod}}.
+      summary: Prometheus configuration reload has failed
+  - alert: DeadMansSwitch
+    expr: vector(1)
+    labels:
+      severity: deadman
+    annotations:
+      description: This is a DeadMansSwitch meant to ensure that the entire Alerting
+        pipeline is functional.
+      summary: Alerting DeadMansSwitch

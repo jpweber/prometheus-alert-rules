@@ -1,0 +1,61 @@
+groups:
+- name: host-alerts
+  rules:
+  - alert: InstanceDown
+    expr: job:EC2 - Node:up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      text: |
+        {{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.
+  - alert: LowMemory
+    expr: ((node_memory_MemFree{instance=~"$server"} / node_memory_MemTotal{instance=~"$server"})
+      * 100) < 5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      text: '{{ $labels.instance }} of job {{ $labels.job }} has had low available
+        memeory for than 5 minutes.'
+  - alert: cpu_threshold_exceeded
+    expr: (100 * (1 - avg by(Name) (irate(node_cpu{job="node",mode="idle"}[5m]))))
+      > 90
+    for: 1m
+    annotations:
+      description: This device's CPU usage has exceeded the threshold with a value
+        of {{ $value }}.
+      summary: Instance {{ $labels.instance }} CPU usage is dangerously high
+  - alert: low_disk_space
+    expr: (node_filesystem_free / node_filesystem_size) * 100 < 10
+    for: 5m
+    annotations:
+      description: This device has a disk with less than 10% free {{ $value }}.
+      summary: Instance {{ $labels.instance }} Disk free space is below 10%
+  - alert: TooManyOpenFileDescriptors
+    expr: 100 * (process_open_fds / process_max_fds) > 95
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      description: '{{ $labels.job }}: {{ $labels.namespace }}/{{ $labels.pod }} ({{
+        $labels.instance }}) is using {{ $value }}% of the available file/socket descriptors.'
+      summary: too many open file descriptors
+  - alert: FdExhaustionClose
+    expr: predict_linear(instance:fd_utilization[1h], 3600 * 4) > 1
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{ $labels.job }}: {{ $labels.namespace }}/{{ $labels.pod }} ({{
+        $labels.instance }}) instance will exhaust in file/socket descriptors soon'
+      summary: file descriptors soon exhausted
+  - alert: FdExhaustionClose
+    expr: predict_linear(instance:fd_utilization[10m], 3600) > 1
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      description: '{{ $labels.job }}: {{ $labels.namespace }}/{{ $labels.pod }} ({{
+        $labels.instance }}) instance will exhaust in file/socket descriptors soon'
+      summary: file descriptors soon exhausted

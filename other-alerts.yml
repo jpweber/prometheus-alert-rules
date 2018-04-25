@@ -1,0 +1,11 @@
+groups:
+- name: other-alerts
+  rules:
+  - alert: TargetDown
+    expr: 100 * (count by(job) (up == 0) / count by(job) (up)) > 10
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{ $value }}% or more of {{ $labels.job }} targets are down.'
+      summary: Targets are down
